@@ -205,7 +205,7 @@ int parse_line(struct prog_info *pi, char *line)
 {
 	char *ptr=NULL;
 	int k;
-	int flag=0, i,j;
+	int flag=0, i;
 	int scratch_len;
 	int global_label = False;
 	char temp[LINEBUFFER_LENGTH];
