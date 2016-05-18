@@ -205,7 +205,8 @@ int parse_line(struct prog_info *pi, char *line)
 {
 	char *ptr=NULL;
 	int k;
-	int flag=0, i;
+	int flag=0, i,j;
+	int scratch_len;
 	int global_label = False;
 	char temp[LINEBUFFER_LENGTH];
 	struct label *label = NULL;
@@ -268,6 +269,7 @@ int parse_line(struct prog_info *pi, char *line)
 
 	strcpy(pi->fi->scratch,line);
 
+	/* Look for labels */
 	for(i = 0; IS_LABEL(pi->fi->scratch[i]) || (pi->fi->scratch[i] == ':'); i++)
 		if(pi->fi->scratch[i] == ':') {	/* it is a label */
 			pi->fi->scratch[i] = '\0';
@@ -286,6 +288,9 @@ int parse_line(struct prog_info *pi, char *line)
 					break;
 				if(test_constant(pi,&pi->fi->scratch[0],"%s has already been defined as a .EQU constant")!=NULL) 
 					break;
+#if debug == 1
+	printf("Is a label: %s\n",pi->fi->scratch);
+#endif
 				label = malloc(sizeof(struct label));
 				if(!label) {
 					print_msg(pi, MSGTYPE_OUT_OF_MEM, NULL);
@@ -323,7 +328,9 @@ int parse_line(struct prog_info *pi, char *line)
 					pi->last_label = label;
 				}
 			} 
+			/* NOTE: increment pointer to skip over the NOW null char to look at the next */
 			i++;
+			/* NOTE: eat up any whitespace on the line to find the next thing */
 			while(IS_HOR_SPACE(pi->fi->scratch[i]) && !IS_END_OR_COMMENT(pi->fi->scratch[i])) i++;
 			if(IS_END_OR_COMMENT(pi->fi->scratch[i])) {
 				if((pi->pass == PASS_2) && pi->list_on) { // Diff tilpassing
@@ -332,7 +339,24 @@ int parse_line(struct prog_info *pi, char *line)
 				}
 				return(True);
 			}
-			strcpy(pi->fi->scratch, &pi->fi->scratch[i]);
+
+			/* ******************************************************* */
+			/* NOTE: we aren't done with the line - there's more stuff */
+			/* ******************************************************* */
+#if debug == 1
+	printf("Label has subsequent stuff on the line.  Rest of line: %s\n",&pi->fi->scratch[i]);
+#endif
+			/* FIXME --> this strcpy is failing because src overlaps the destination!  Need to use memmove() */
+			//strcpy(pi->fi->scratch, &pi->fi->scratch[i]);
+			
+			/* Figure out how long the remaining string is */ 
+			/* NOTE: i got incremented above so scratch[i] is no longer null */
+			scratch_len = strlen(&pi->fi->scratch[i]) + 1; /* Include that NULL character! */
+			memmove(pi->fi->scratch, &pi->fi->scratch[i],scratch_len);
+			
+			/* ****************************************************************************** */
+			/* Now pass the rest of the line on to the mnemonic parser by bailing on the loop */
+			/* ****************************************************************************** */
 			break;
 		}
 

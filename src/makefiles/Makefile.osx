@@ -1,5 +1,6 @@
 CC=gcc
-ARCH=-arch i386 -arch x86_64 -arch ppc
+# ARCH=-arch i386 -arch x86_64 -arch ppc
+ARCH=-arch i386 -arch x86_64
 SOURCE=args.c \
         avra.c \
         coff.c \
@@ -15,4 +16,6 @@ SOURCE=args.c \
 
 all:
 	$(CC) $(ARCH) -o avra $(SOURCE)
+
+#	$(CC) $(ARCH) -Ddebug=1 -o avra $(SOURCE)
 
