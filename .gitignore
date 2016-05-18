@@ -3,3 +3,5 @@ releases
 patches
 *.o
 *.exe
+*.swp
+src/avra
